@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文化资源分析库</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .input-area {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        #userInput {
+            width: 70%;
+            padding: 12px 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+        .search-btn, .close-btn, .generate-btn {
+            margin-left: 10px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .search-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .close-btn {
+            background: #f1f1f1;
+            color: #333;
+        }
+        .generate-btn {
+            background: #2196F3;
+            color: white;
+            margin-top: 20px;
+        }
+        .features {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        .feature {
+            width: 30%;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .feature h3 {
+            color: #4CAF50;
+        }
+        #output, #teachingPlanOutput {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            text-align: left;
+            display: none;
+            overflow-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .result-title {
+            color: #4CAF50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .result-content {
+            line-height: 1.4;
+        }
+        .result-section {
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin: 8px 0 4px 0;
+        }
+        .error-message {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .team-info {
+            margin-top: 40px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .teaching-plan-form {
+            background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #a5d6a7;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            height: 90px;
+            resize: vertical;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #e0e0e0;
+            margin: 0 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .content-area {
+            display: none;
+        }
+        .content-area.active {
+            display: block;
+        }
+        /* 新增样式用于处理Markdown格式 */
+        .markdown-content {
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+        }
+        .markdown-content h1, 
+        .markdown-content h2, 
+        .markdown-content h3 {
+            color: #4CAF50;
+            margin: 15px 0 10px 0;
+        }
+        .markdown-content ul, 
+        .markdown-content ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        .markdown-content li {
+            margin-bottom: 5px;
+        }
+        .markdown-content strong {
+            font-weight: bold;
+        }
+        .markdown-content em {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文化资源分析库</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('culture')">文化资源分析</div>
+            <div class="tab" onclick="switchTab('teaching')">美育教案生成</div>
+        </div>
+
+        <div id="cultureContent" class="content-area active">
+            <p>输入上传相关材料（支持文字格式），自动解析</p>
+            
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="请输入要分析的内容..." autocomplete="off">
+                <button class="search-btn" onclick="analyze('culture')">Q</button>
+                <button class="close-btn" onclick="clearInput()">X</button>
+            </div>
+
+            <div id="output">
+                <div id="resultContent"></div>
+            </div>
+        </div>
+
+        <div id="teachingContent" class="content-area">
+            <div class="teaching-plan-form">
+                <h2 style="color: #2e7d32; margin-bottom: 20px;">智能课程设计坊</h2>
+                
+                <div class="form-group">
+                    <label for="courseType">课程类型</label>
+                    <select id="courseType">
+                        <option value="音乐欣赏课">音乐欣赏课</option>
+                        <option value="美术创作课">美术创作课</option>
+                        <option value="戏剧表演课">戏剧表演课</option>
+                        <option value="舞蹈体验课">舞蹈体验课</option>
+                        <option value="文学鉴赏课">文学鉴赏课</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="courseTheme">主题</label>
+                    <input type="text" id="courseTheme" placeholder="例如：莫扎特音乐欣赏">
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetStudents">面向学生</label>
+                    <input type="text" id="targetStudents" placeholder="例如：小学五年级">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mainContent">主要内容</label>
+                    <textarea id="mainContent" placeholder="例如：了解莫扎特，欣赏《小星星变奏曲》等代表作"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="teachingMethod">授课方式</label>
+                    <input type="text" id="teachingMethod" placeholder="例如：教师讲授+学生讨论">
+                </div>
+                
+                <button class="generate-btn" onclick="generateTeachingPlan()">立即生成教案</button>
+            </div>
+            
+            <div id="teachingPlanOutput">
+                <div id="teachingPlanResult"></div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>文化特征解析</h3>
+                <p>自动识别文化符号、历史背景、艺术风格等特征</p>
+            </div>
+            <div class="feature">
+                <h3>知识图谱生成</h3>
+                <p>构建结构化知识网络，展示文化资源关联性</p>
+            </div>
+            <div class="feature">
+                <h3>美育教案生成</h3>
+                <p>智能生成美育特色教案，辅助教学准备</p>
+            </div>
+        </div>
+
+        <div class="team-info">
+            我们是拥有经验丰富的文化特征团队，能够为您提供高质量的文化特征分析服务。
+        </div>
+    </div>
+
+    <script>
+        // 获取模式名称
+        function getModeName(mode) {
+            const modes = {
+                culture: "文化特征解析",
+                knowledge: "知识图谱生成",
+                similar: "相似案例匹配"
+            };
+            return modes[mode] || "分析";
+        }
+
+        // 清空输入
+        function clearInput() {
+            document.getElementById("userInput").value = "";
+            document.getElementById("output").style.display = "none";
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.content-area').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Content`).classList.add('active');
+        }
+
+        // 格式化响应文本
+        function formatResponse(text) {
+            // 处理Markdown格式
+            let formattedText = text
+                .replace(/^###\s?(.*$)/gm, '<h3>$1</h3>')  // 处理###标题
+                .replace(/^##\s?(.*$)/gm, '<h2>$1</h2>')    // 处理##标题
+                .replace(/^#\s?(.*$)/gm, '<h1>$1</h1>')     // 处理#标题
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // 加粗
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')       // 斜体
+                .replace(/^\s*\*\s(.*$)/gm, '<li>$1</li>') // 无序列表
+                .replace(/^\s*-\s(.*$)/gm, '<li>$1</li>')   // 无序列表
+                .replace(/^\s*\d+\.\s(.*$)/gm, '<li>$1</li>') // 有序列表
+                .replace(/\n/g, '<br>');                    // 换行
+
+            // 将列表项包裹在ul或ol中
+            formattedText = formattedText.replace(/(<li>.*?<\/li>)+/g, function(match) {
+                return '<ul>' + match + '</ul>';
+            });
+
+            return formattedText;
+        }
+
+        // 使用fetch发送请求
+        async function analyze(mode) {
+            const inputText = document.getElementById("userInput").value.trim();
+            if (!inputText) {
+                alert("请输入有效内容");
+                return;
+            }
+
+            const outputDiv = document.getElementById("output");
+            const resultContent = document.getElementById("resultContent");
+            
+            outputDiv.style.display = "block";
+            resultContent.innerHTML = "<p class='loading'>分析中，请稍候...</p>";
+
+            try {
+                // 1. 检查服务是否可用
+                const healthCheck = await fetch("http://nw1064vb24742.vicp.fun/api/tags");
+                if (!healthCheck.ok) {
+                    throw new Error("Ollama服务未响应");
+                }
+
+                // 2. 发送正式请求（使用严格格式的提示词）
+                const response = await fetch("http://nw1064vb24742.vicp.fun/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "deepseek-r1:7b",
+                        prompt: `请严格按照以下格式执行文化特征解析：
+                        
+                        ${inputText}的文化特征解析如下：
+                        
+                        1.艺术风格：（描述艺术风格特点）
+                        2.象征意义：（解释象征意义）
+                        3.宗教寓意：（分析宗教寓意）
+                        4.哲学思想：（阐述哲学思想）
+                        5.社会背景：（说明社会背景）
+                        
+                        要求：
+                        1. 不要包含任何HTML标签
+                        2. 不要包含思考过程
+                        3. 使用简洁明了的语言
+                        4. 每个要点单独成段`,
+                        stream: false
+                    })
+                });
+
+                // 3. 检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP错误: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // 4. 验证响应数据
+                if (!data || typeof data.response !== 'string') {
+                    throw new Error("API返回数据格式异常");
+                }
+
+                // 5. 格式化并显示结果
+                const formattedText = formatResponse(data.response);
+                resultContent.innerHTML = `
+                    <div class="result-title">文化特征解析结果</div>
+                    <div class="result-content markdown-content">
+                        ${formattedText}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultContent.innerHTML = `
+                    <div class="error-message">
+                        <p>⚠️ 请求失败: ${error.message}</p>
+                        <div style="margin-top:10px;">
+                            <p>请检查：</p>
+                            <ol>
+                                <li>终端是否执行 <code>ollama serve</code></li>
+                                <li>模型是否下载 <code>ollama pull deepseek-r1:7b</code></li>
+                                <li>花生壳服务是否配置正确</li>
+                                <li>防火墙是否放行11434端口</li>
+                            </ol>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 生成教案
+        async function generateTeachingPlan() {
+            const courseType = document.getElementById("courseType").value;
+            const courseTheme = document.getElementById("courseTheme").value.trim();
+            const targetStudents = document.getElementById("targetStudents").value.trim();
+            const mainContent = document.getElementById("mainContent").value.trim();
+            const teachingMethod = document.getElementById("teachingMethod").value.trim();
+
+            if (!courseTheme || !targetStudents || !mainContent || !teachingMethod) {
+                alert("请填写所有必填字段");
+                return;
+            }
+
+            const outputDiv = document.getElementById("teachingPlanOutput");
+            const resultContent = document.getElementById("teachingPlanResult");
+            
+            outputDiv.style.display = "block";
+            resultContent.innerHTML = "<p class='loading'>教案生成中，请稍候...</p>";
+
+            try {
+                // 1. 检查服务是否可用
+                const healthCheck = await fetch("http://nw1064vb24742.vicp.fun/api/tags");
+                if (!healthCheck.ok) {
+                    throw new Error("Ollama服务未响应");
+                }
+
+                // 2. 发送教案生成请求
+                const response = await fetch("http://nw1064vb24742.vicp.fun/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                    model: "deepseek-r1:7b",
+                    prompt: `请根据以下信息生成一份详细的美育教案：
+                        
+                    课程类型：${courseType}
+                    主题：${courseTheme}
+                    面向学生：${targetStudents}
+                    主要内容：${mainContent}
+                    授课方式：${teachingMethod}
+                        
+                    要求生成的教案包含以下部分：
+                    1. 教学目标（知识、能力、情感三维目标,每项目标至少3点）
+                    2. 教学重点与难点（详细说明，各3-5点）
+                    3. 教学准备（教具、材料等,详细列出所需物品）
+                    4. 教学过程（详细步骤，包含时间分配，每个环节至少5个步骤）
+                    5. 课堂互动设计（3-5种互动方式，详细说明实施方法）
+                    6. 课后延伸活动建议（3-5项具体活动，详细说明实施方式）
+                    7. 评估方式（3-5种评估方法）
+                    8. 参考资料（3-5个参考来源）
+
+                    格式要求：
+                    1. 使用Markdown格式
+                    2. 结构清晰，层次分明
+                    3. 语言简洁专业
+                    4. 适合${targetStudents}的理解水平
+                    5.内容要详细具体
+                    6.适当减少段落间距`,
+                    stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP错误: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data || typeof data.response !== 'string') {
+                    throw new Error("API返回数据格式异常");
+                }
+
+                // 格式化并显示结果
+                const formattedText = formatResponse(data.response);
+                resultContent.innerHTML = `
+                    <div class="result-title">${courseTheme} - 美育教案</div>
+                    <div class="result-content markdown-content">
+                        ${formattedText}
+                    </div>
+                `;
+
+            } catch (error) {
+                resultContent.innerHTML = `
+                    <div class="error-message">
+                        <p>⚠️ 教案生成失败: ${error.message}</p>
+                        <div style="margin-top:10px;">
+                            <p>请检查：</p>
+                            <ol>
+                                <li>网络连接是否正常</li>
+                                <li>Ollama服务是否运行</li>
+                                <li>所有必填字段是否已填写</li>
+                            </ol>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 添加回车键触发搜索
+        document.getElementById("userInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                analyze('culture');
+            }
+        });
+    </script>
+</body>
+</html>
